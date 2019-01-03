@@ -1,23 +1,35 @@
 import tensorflow as tf
 import csv
 import os
+import model
+import csv_reader
+from time import gmtime, strftime
 
 def csv_reader(path):
-
     try:
         file = open(path, 'r')
         csv_file = csv.reader(file)
-        img_list = [[] for i in range(28)]
+        img_list = []
+        label_list = [[0 for i in range(31072)] for i in range(28)]
         next(csv_file)
+        index = -1
         for stu in csv_file:
+            index += 1
+            img_list.append("/train/"+ stu[0] + ".png")
             label = stu[1].split(' ')
             for i in label:
-                img_list[int(i)].append(stu[0])
-        return img_list
+                label_list[int(i)][index] = 1
+        return img_list, label_list
     except Exception:
         print ("Error! Please check path.")
     finally:
         file.close()
+
+def _parse_function(filename, label):
+    image_string = tf.read_file(filename)
+    image_decoded = tf.image.decode_jpeg(image_string)
+    image_resized = tf.image.resize_images(image_decoded, [28, 28])
+    return image_resized, label
 
 
 def formalize_labels(labels):
@@ -90,22 +102,31 @@ def model_fn(features, labels, mode):
 
 def main(argv):
     # load data: (train_images, train_labels), (test_images, test_labels)
-
     classifiers = [tf.estimator.Estimator(model_fn = model_fn) for i in range(28)]
-    
-    train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x = train_images,
-        y = train_labels,
-        batch_size = 100,
-        num_epochs = None,
-        shuffle = True)
-    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x = test_images,
-        y = test_labels,
-        num_epochs = 1,
-        shuffle = False)
-        
+    protain_id = -1
+
     for classifier in classifiers:
+        protain_id += 1 # get current protain id
+        image, label = csv_reader("train.csv") # image: list of img name
+
+        # not finish yet. done by tmr. should convert img to tensor -> ndarray
+        image_reader = tf.WholeFileReader() 
+        key, img = image_reader.read(image)
+        img = tf.image.decode_png(img) 
+        train_images, train_labels = img[:len(img)//4], label[protain_id][:len(label[protain_id])//4]
+        test_images, test_labels = img[len(img)//4:], label[protain_id][len(label[protain_id])//4:]
+
+        train_input_fn = tf.estimator.inputs.numpy_input_fn(
+            x = train_images,
+            y = train_labels,
+            batch_size = 100,
+            num_epochs = None,
+            shuffle = True)
+        eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+            x = test_images,
+            y = test_labels,
+            num_epochs = 1,
+            shuffle = False)
         classifier.train(input_fn = train_input_fn, steps = 10000)
         eval_results = classifier.evaluate(input_fn = eval_input_fn)
         print(eval_results)
@@ -116,3 +137,6 @@ if __name__ == "__main__":
     session = tf.Session(config=config)
     tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run()
+    time = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
+    saver = tf.train.Saver()
+    save_path = saver.save(session, "/tmp/" + time + ".ckpt")

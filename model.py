@@ -1,7 +1,6 @@
 import tensorflow as tf
 import csv
 import os
-from sklearn.cross_validation import train_test_split
 
 def formalize_labels(labels):
     ret = [[] for i in range(28)]

@@ -1,7 +1,6 @@
 import tensorflow as tf
 import csv
 import os
-from sklearn.cross_validation import train_test_split
 import model
 import csv_reader
 
