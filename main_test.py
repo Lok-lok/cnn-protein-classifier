@@ -14,12 +14,6 @@ def main(argv):
 
     classifiers = [tf.estimator.Estimator(model_fn = model_fn) for i in range(28)]
     
-    train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x = train_images,
-        y = train_labels,
-        batch_size = 100,
-        num_epochs = None,
-        shuffle = True)
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
         x = test_images,
         y = test_labels,

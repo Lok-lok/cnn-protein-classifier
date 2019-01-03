@@ -20,11 +20,6 @@ def main(argv):
         batch_size = 100,
         num_epochs = None,
         shuffle = True)
-    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x = test_images,
-        y = test_labels,
-        num_epochs = 1,
-        shuffle = False)
         
     for classifier in classifiers:
         classifier.train(input_fn = train_input_fn, steps = 10000)
