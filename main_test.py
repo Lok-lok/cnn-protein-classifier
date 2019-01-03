@@ -2,6 +2,8 @@ import tensorflow as tf
 import csv
 import os
 from sklearn.cross_validation import train_test_split
+import model
+import csv_reader
 
 def main(argv):
     # load data: (train_images, train_labels), (test_images, test_labels)
@@ -25,7 +27,6 @@ def main(argv):
         shuffle = False)
         
     for classifier in classifiers:
-        classifier.train(input_fn = train_input_fn, steps = 10000)
         eval_results = classifier.evaluate(input_fn = eval_input_fn)
         print(eval_results)
 
