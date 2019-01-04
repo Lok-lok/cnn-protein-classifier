@@ -1,0 +1,5 @@
+{
+    "csv_file" : "train.csv",
+    "img_dir" : "train",
+    "model_dir" : "model"
+}
