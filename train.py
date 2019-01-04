@@ -48,19 +48,14 @@ def main(argv):
     
     label = [i[:100] for i in label_list]
     
-    # classifier = [tf.estimator.Estimator(model_fn = model.model_fn) for i in range(28)]
-    
-    # for i in range(len(classifier)):
-        # classifier[i].train(input_fn = lambda:train_input_fn(img, label[i], 10), steps = 100)
-        # classifier[i].export_saved_model(export_dir_base=config_data['model_dir'], serving_input_receiver_fn=serving_input_receiver_fn)
-        
     run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None, keep_checkpoint_max = 1)
-    classifier = tf.estimator.Estimator(model_fn = model.model_fn, config = run_config)
+    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config) for i in range(28)]
     
-    classifier.train(input_fn = lambda:train_input_fn(img_id[:100], config_data['img_dir'], label[0], batch_size), steps = 100)
-    classifier.export_saved_model(export_dir_base=config_data['model_dir'], 
-        serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
-    
+    for i in range(len(classifier)):
+        classifier[i].train(input_fn = lambda:train_input_fn(img_id[:100], config_data['img_dir'], label[0], batch_size), steps = 100)
+        classifier[i].export_saved_model(export_dir_base=config_data['model_dir'],
+            serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
+            
 if __name__ == "__main__":
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
