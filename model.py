@@ -1,14 +1,6 @@
 import tensorflow as tf
 import csv
 import os
-
-def formalize_labels(labels):
-    ret = [[] for i in range(28)]
-    for label in labels:
-        current_label = [int(i) for i in label[1].split(" ")]
-    for i in range(28):
-        cat.append(i in current_label)
-    return ret
     
 def model_fn(features, labels, mode):
     labels = tf.cast(labels, tf.int32)
@@ -51,7 +43,7 @@ def model_fn(features, labels, mode):
     argmax = tf.argmax(input = logits, axis = 1)
     
     softmax = tf.nn.softmax(logits, name = "softmax_tensor")
-        
+    
     loss = tf.losses.sparse_softmax_cross_entropy(labels = labels, logits = logits)
     accuracy = tf.metrics.accuracy(labels = labels, predictions = argmax)
     
