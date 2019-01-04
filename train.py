@@ -11,9 +11,15 @@ import csv_read
 
 img_color = ['blue', 'green', 'red', 'yellow']
 
-def train_input_fn(features, labels, batch_size):
-    dataset = tf.data.Dataset.from_tensor_slices((features, labels))
-    dataset = dataset.shuffle(500).repeat().batch(batch_size)
+def train_input_fn(img_id, img_dir, labels, batch_size):
+    img_list = [[tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color] for id in img_id]
+    for id in img_list:
+        for color_img in id:
+            color_img.set_shape([512, 512, 1])
+    img = [tf.divide(tf.cast(tf.stack([tf.reshape(color_img, [512, 512]) for color_img in id], axis=2), dtype = tf.float32), tf.convert_to_tensor(255.0)) for id in img_list]
+    
+    dataset = tf.data.Dataset.from_tensor_slices((img, labels))
+    dataset = dataset.shuffle(100).repeat().batch(batch_size)
     return dataset
 
 def serving_input_receiver_fn():
@@ -44,20 +50,20 @@ def main(argv):
     
     img_id, label_list = csv_reader.csv_read(config_data['csv_file'])
     
-    img_list = [[tf.image.decode_png(tf.read_file(config_data['img_dir'] + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color] for id in img_id[:1000]]
-    for id in img_list:
-        for color_img in id:
-            color_img.set_shape([512, 512, 1])
-    img = tf.convert_to_tensor([tf.stack([tf.reshape(color_img, [512, 512]) for color_img in id], axis=2) for id in img_list])
+    label = [i[:100] for i in label_list]
     
-    label = [tf.convert_to_tensor(i[:1000]) for i in label_list]
+    # classifier = [tf.estimator.Estimator(model_fn = model.model_fn) for i in range(28)]
     
-    classifier = [tf.estimator.Estimator(model_fn = model.model_fn) for i in range(28)]
-    
-    for i in range(len(classifier)):
-        classifier[i].train(input_fn = lambda:train_input_fn(img, label[i], 10), steps = 100)
-        classifier[i].export_saved_model(export_dir_base=config_data['model_dir'], serving_input_receiver_fn=serving_input_receiver_fn)
+    # for i in range(len(classifier)):
+        # classifier[i].train(input_fn = lambda:train_input_fn(img, label[i], 10), steps = 100)
+        # classifier[i].export_saved_model(export_dir_base=config_data['model_dir'], serving_input_receiver_fn=serving_input_receiver_fn)
         
+    run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None)
+    classifier = tf.estimator.Estimator(model_fn = model.model_fn, config = run_config)
+    
+    classifier.train(input_fn = lambda:train_input_fn(img_id[:100], config_data['img_dir'], label[0], 16), steps = 100)
+    classifier.export_saved_model(export_dir_base=config_data['model_dir'], serving_input_receiver_fn=serving_input_receiver_fn)
+    
 if __name__ == "__main__":
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
