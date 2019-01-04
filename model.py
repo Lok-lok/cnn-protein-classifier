@@ -14,7 +14,7 @@ def model_fn(features, labels, mode):
         
     pool1 = tf.layers.max_pooling2d(inputs = conv1, 
         pool_size = [4, 4], 
-        strides = 2)
+        strides = 4)
         
     conv2 = tf.layers.conv2d(inputs = pool1,
         filters = 64,
@@ -24,7 +24,7 @@ def model_fn(features, labels, mode):
 
     pool2 = tf.layers.max_pooling2d(inputs = conv2, 
         pool_size = [4, 4], 
-        strides = 2)
+        strides = 4)
         
     after_conv_flat = tf.reshape(pool2, [-1, 32 * 32 * 64])
 
