@@ -12,9 +12,7 @@ import csv_read
 img_color = ['blue', 'green', 'red', 'yellow']
 batch_size = 32
 
-img_dir = "train/"
-
-def gen_fn(id, label):
+def gen_fn(id, label, img_dir):
     color_img = [tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color]
     for current_color_img in color_img:
         current_color_img.set_shape([512, 512, 1])
@@ -23,8 +21,8 @@ def gen_fn(id, label):
     normalized_img = tf.divide(tf.cast(img, dtype = tf.float32), tf.convert_to_tensor(255.0))
     return (normalized_img, label)
     
-def train_input_fn(img_id, labels, batch_size):
-    dataset = tf.data.Dataset.from_tensor_slices((img_id, labels)).map(gen_fn)
+def train_input_fn(img_id, img_dir, labels, batch_size):
+    dataset = tf.data.Dataset.from_tensor_slices((img_id, labels)).map(lambda id, label:gen_fn(id, label, img_dir))
     dataset = dataset.shuffle(100).repeat().batch(batch_size)
     return dataset
     
@@ -48,15 +46,14 @@ def main(argv):
     if 'csv_file' not in config_data or 'img_dir' not in config_data or 'model_dir' not in config_data or 'ckpt_dir' not in config_data:
         return 0
     config_data['img_dir'] += "/" if config_data['img_dir'][-1] else ""
-    img_dir = config_data['img_dir']
     
     img_id, label = csv_read.csv_read(config_data['csv_file'])
     
-    run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None, keep_checkpoint_max = 1)
+    run_config = tf.estimator.RunConfig(save_checkpoints_steps=1000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
     classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)]
     
     for i in range(len(classifier)):
-        classifier[i].train(input_fn = lambda:train_input_fn(img_id, label[i], batch_size), steps = 100)
+        classifier[i].train(input_fn = lambda:train_input_fn(img_id, img_dir, label[i], batch_size), steps = 1000)
         
         classifier[i].export_saved_model(export_dir_base=config_data['model_dir'],
             serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
