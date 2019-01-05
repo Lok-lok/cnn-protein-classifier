@@ -53,7 +53,7 @@ def main(argv):
     classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)]
     
     for i in range(len(classifier)):
-        classifier[i].train(input_fn = lambda:train_input_fn(img_id, img_dir, label[i], batch_size), steps = 1000)
+        classifier[i].train(input_fn = lambda:train_input_fn(img_id, config_data['img_dir'], label[i], batch_size), steps = 1000)
         
         classifier[i].export_saved_model(export_dir_base=config_data['model_dir'],
             serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
