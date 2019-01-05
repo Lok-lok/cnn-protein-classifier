@@ -12,16 +12,19 @@ import csv_read
 img_color = ['blue', 'green', 'red', 'yellow']
 batch_size = 32
 
-def train_input_fn(img_id, img_dir, labels, batch_size):
-    img_list = [[tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color] for id in img_id]
-    for id in img_list:
-        for color_img in id:
-            color_img.set_shape([512, 512, 1])
-    img = [tf.divide(tf.cast(tf.stack([tf.reshape(color_img, [512, 512]) for color_img in id], axis=2), dtype = tf.float32), tf.convert_to_tensor(255.0)) for id in img_list]
+img_dir = "train/"
+
+def gen_fn(id, label):
+    color_img = [tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color]
+    for current_color_img in color_img:
+        current_color_img.set_shape([512, 512, 1])
+    color_img_reshaped = [tf.reshape(i, [512, 512]) for i in color_img]
+    img = tf.stack(color_img_reshaped, axis=2)
+    normalized_img = tf.divide(tf.cast(img, dtype = tf.float32), tf.convert_to_tensor(255.0))
+    return (normalized_img, label)
     
-    labels = tf.cast(labels, tf.int32)
-    
-    dataset = tf.data.Dataset.from_tensor_slices((img, labels))
+def train_input_fn(img_id, labels, batch_size):
+    dataset = tf.data.Dataset.from_tensor_slices((img_id, labels)).map(gen_fn)
     dataset = dataset.shuffle(100).repeat().batch(batch_size)
     return dataset
     
@@ -45,20 +48,19 @@ def main(argv):
     if 'csv_file' not in config_data or 'img_dir' not in config_data or 'model_dir' not in config_data or 'ckpt_dir' not in config_data:
         return 0
     config_data['img_dir'] += "/" if config_data['img_dir'][-1] else ""
+    img_dir = config_data['img_dir']
     
-    img_id, label_list = csv_read.csv_read(config_data['csv_file'])
-    
-    label = [i[:100] for i in label_list]
+    img_id, label = csv_read.csv_read(config_data['csv_file'])
     
     run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None, keep_checkpoint_max = 1)
-    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir']) for i in range(28)]
+    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)]
     
     for i in range(len(classifier)):
-        classifier[i].train(input_fn = lambda:train_input_fn(img_id[:100], config_data['img_dir'], label[i], batch_size), steps = 100)
-        """
+        classifier[i].train(input_fn = lambda:train_input_fn(img_id, label[i], batch_size), steps = 100)
+        
         classifier[i].export_saved_model(export_dir_base=config_data['model_dir'],
             serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
-        """   
+        
 if __name__ == "__main__":
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True

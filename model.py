@@ -48,6 +48,7 @@ def model_fn(features, labels, mode):
     if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(mode = mode, predictions = softmax)
         
+    labels = tf.cast(labels, tf.int32)
     loss = tf.losses.sparse_softmax_cross_entropy(labels = labels, logits = logits)
 
     if mode == tf.estimator.ModeKeys.TRAIN:
