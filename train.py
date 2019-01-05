@@ -40,7 +40,9 @@ def main(argv):
         print("image directory not available")
     if 'model_dir' not in config_data:
         print("model directory not available")
-    if 'csv_file' not in config_data or 'img_dir' not in config_data or 'model_dir' not in config_data:
+    if 'ckpt_dir' not in config_data:
+        print("checkpoint directory not available")
+    if 'csv_file' not in config_data or 'img_dir' not in config_data or 'model_dir' not in config_data or 'ckpt_dir' not in config_data:
         return 0
     config_data['img_dir'] += "/" if config_data['img_dir'][-1] else ""
     
@@ -49,7 +51,7 @@ def main(argv):
     label = [i[:100] for i in label_list]
     
     run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None, keep_checkpoint_max = 1)
-    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['model_dir']) for i in range(28)]
+    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir']) for i in range(28)]
     
     for i in range(len(classifier)):
         classifier[i].train(input_fn = lambda:train_input_fn(img_id[:100], config_data['img_dir'], label[i], batch_size), steps = 100)

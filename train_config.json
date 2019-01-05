@@ -1,5 +1,6 @@
 {
     "csv_file" : "train.csv",
     "img_dir" : "train",
-    "model_dir" : "model"
+    "model_dir" : "model",
+    "ckpt_dir" : "ckpt"
 }
