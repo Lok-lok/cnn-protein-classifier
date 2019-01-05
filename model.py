@@ -49,7 +49,7 @@ def model_fn(features, labels, mode):
         return tf.estimator.EstimatorSpec(mode = mode, predictions = softmax)
         
     loss = tf.losses.sparse_softmax_cross_entropy(labels = labels, logits = logits)
-    
+
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
         train_op = optimizer.minimize(loss = loss, global_step = tf.train.get_global_step())
@@ -61,5 +61,7 @@ def model_fn(features, labels, mode):
         return tf.estimator.EstimatorSpec(mode = mode, loss = loss, train_op = train_op, training_hooks = [logging_hook])
         
     if mode == tf.estimator.ModeKeys.EVAL:
+        accuracy = tf.metrics.accuracy(labels = labels, predictions = argmax)
         eval_metric_ops = {"accuracy" : accuracy}
+        tf.summary.scalar('accuracy', accuracy[1])
         return tf.estimator.EstimatorSpec(mode = mode, loss = loss, eval_metric_ops = eval_metric_ops)
