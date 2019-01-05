@@ -51,7 +51,7 @@ def main(argv):
     for i in range(len(classifier)):
         eval_result = classifier[i].evaluate(input_fn = lambda:eval_input_fn(img_id[100:], config_data['img_dir'], label_test[i], batch_size), steps = 1)
         print ("==============================================================================================================================================")
-        print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result) + "  for Protain-ID: " + i)
+        print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result) + "  for Protein-ID: " + i)
         print ("==============================================================================================================================================")
 
 if __name__ == "__main__":
