@@ -57,7 +57,7 @@ def model_fn(features, labels, mode):
         
         accuracy = tf.metrics.accuracy(labels = labels, predictions = argmax)
         log = {"accuracy" : accuracy[1]}
-        logging_hook = tf.train.LoggingTensorHook(tensors = log, every_n_iter = 50)
+        logging_hook = tf.train.LoggingTensorHook(tensors = log, every_n_iter = 100)
         
         return tf.estimator.EstimatorSpec(mode = mode, loss = loss, train_op = train_op, training_hooks = [logging_hook])
         
