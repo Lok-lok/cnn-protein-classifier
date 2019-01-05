@@ -10,7 +10,7 @@ import model
 import csv_read
 
 img_color = ['blue', 'green', 'red', 'yellow']
-batch_size = 32
+batch_size = 16
 
 def gen_fn(id, label, img_dir):
     color_img = [tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color]
