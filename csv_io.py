@@ -33,16 +33,4 @@ def csv_writer(path, img, label):
         writer.writerow([img[i], label[i]])
     csvfile.close()
 
-path = "train.csv"
-img, l = csv_read(path)
-maxlen = 0
-win = -1
-for i in range(28):
-    cur = 0
-    for j in range(len(l[i])):
-        if l[i][j] == 1:
-            cur += 1
-    if cur>maxlen:
-        maxlen = cur
-        win = i
-print (win)
+

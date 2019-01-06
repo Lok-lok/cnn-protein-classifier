@@ -44,10 +44,10 @@ def main(argv):
     
     img_id, label = csv_io.csv_read(config_data['csv_file'])
     
-    run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None, keep_checkpoint_max = 1)
+    run_config = tf.estimator.RunConfig(save_checkpoints_steps=2000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
     classifier = tf.estimator.Estimator(model_fn = model.cnn_model_fn, config = run_config, model_dir = config_data['ckpt_dir'])
     
-    classifier.train(input_fn = lambda:train_input_fn(img_id, config_data['img_dir'], label, batch_size), steps = 100)
+    classifier.train(input_fn = lambda:train_input_fn(img_id, config_data['img_dir'], label, batch_size), steps = 2000)
     
     # classifier.export_saved_model(export_dir_base=config_data['model_dir'],
         # serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))

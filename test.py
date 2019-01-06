@@ -45,27 +45,24 @@ def main(argv):
     img_id, label_list = csv_io.csv_read(config_data['csv_file'])
     
     run_config = tf.estimator.RunConfig(save_checkpoints_steps=1000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
-    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)] 
-
+    classifier = tf.estimator.Estimator(model_fn = model.cnn_model_fn, config = run_config, model_dir = config_data['ckpt_dir'])
     length = len(img_id)  # length of sample_submission size
 
-    label = [[] for i in range(length)] # predicted label
+    label = [] # predicted label
 
-    for i in range(len(classifier)):
-        #eval_result = classifier[i].evaluate(input_fn = lambda:eval_input_fn(img_id[100:], config_data['img_dir'], label_test[i], batch_size), steps = 1)
-        print ("==============================================================================================================================================")
-        index = -1
-        predictions = classifier[i].predict(input_fn=lambda:predict_input_fn(img_id, config_data['img_dir'], batch_size = batch_size))
+    predictions = classifier.predict(input_fn=lambda:predict_input_fn(img_id, config_data['img_dir'], batch_size = batch_size))
 
-        for predict in predictions:
-            index = index +1
-            if (predict == 1): 
-                label[index].append(i)
+    bar = 0.5
 
-        print ("Finished: No." + str(i) + " Protain.")
-        
-        print ("==============================================================================================================================================")
-
+    for predict in predictions:
+        sub_label = []
+        for i in range(len(predict)):
+            if predict[i] > bar:
+                sub_label.append(i)
+        if len(sub_label)==0:
+            sub_label.append(0)
+        label.append(sub_label)
+    
     path = config_data['csv_file']
     csv_io.csv_writer(path, img_id, label)
     print("Prediction Finished!")
