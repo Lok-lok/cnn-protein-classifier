@@ -21,5 +21,30 @@ def csv_read(path):
     except Exception:
         print("Error! Please check path.")
         sys.exit(0)
-        
-id, label = csv_read("train.csv")
+
+
+def csv_writer(path, img, label):
+    for i in range(len(label)):
+        label[i] = " ".join(str(x) for x in label[i])
+    csvfile = open(path, 'w', newline = "") 
+    writer = csv.writer(csvfile)
+    writer.writerow(["Id","Predicted"])
+    length = len(img)
+    for i in range(length):
+        writer.writerow([img[i], label[i]])
+    csvfile.close()
+
+path = "train.csv"
+img, l = csv_read(path)
+maxlen = 0
+win = -1
+for i in range(28):
+    cur = 0
+    for j in range(len(l[i])):
+        if l[i][j] == 1:
+            cur += 1
+    if cur>maxlen:
+        maxlen = cur
+        win = i
+print (win)
+
