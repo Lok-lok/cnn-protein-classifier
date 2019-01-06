@@ -10,20 +10,17 @@ import csv_read
 img_color = ['blue', 'green', 'red', 'yellow']
 batch_size = 16
 
-def eval_input_fn(img_id, img_dir, labels, batch_size):
-    img_list = [[tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color] for id in img_id]
-    for id in img_list:
-        for color_img in id:
-            color_img.set_shape([512, 512, 1])
-    img = [tf.divide(tf.cast(tf.stack([tf.reshape(color_img, [512, 512]) for color_img in id], axis=2), dtype = tf.float32), tf.convert_to_tensor(255.0)) for id in img_list]
-    #img = dict(img)
-    labels = tf.cast(labels, tf.int32)
-    if labels is None:
-        inputs = img
-    else:
-        inputs = (img, labels)
-
-    dataset = tf.data.Dataset.from_tensor_slices(inputs)
+def gen_fn(id, img_dir):
+    color_img = [tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color]
+    for current_color_img in color_img:
+        current_color_img.set_shape([512, 512, 1])
+    color_img_reshaped = [tf.reshape(i, [512, 512]) for i in color_img]
+    img = tf.stack(color_img_reshaped, axis=2)
+    normalized_img = tf.divide(tf.cast(img, dtype = tf.float32), tf.convert_to_tensor(255.0))
+    return normalized_img
+    
+def predict_input_fn(img_id, img_dir, batch_size):
+    dataset = tf.data.Dataset.from_tensor_slices(img_id).map(lambda id:gen_fn(id, img_dir))
     dataset = dataset.batch(batch_size)
     return dataset
     
@@ -56,7 +53,7 @@ def main(argv):
         #eval_result = classifier[i].evaluate(input_fn = lambda:eval_input_fn(img_id[100:], config_data['img_dir'], label_test[i], batch_size), steps = 1)
         
         print ("==============================================================================================================================================")
-        predictions = classifier[i].predict(input_fn=lambda:eval_input_fn(img_id[1:], config_data['img_dir'], None, batch_size = batch_size))
+        predictions = classifier[i].predict(input_fn=lambda:predict_input_fn(img_id, config_data['img_dir'], batch_size = batch_size))
         for predict in predictions:
             index = predict[:, tf.newaxis]
             print (index[0])
