@@ -23,7 +23,7 @@ def gen_fn(id, label, img_dir):
     
 def train_input_fn(img_id, img_dir, labels, batch_size):
     dataset = tf.data.Dataset.from_tensor_slices((img_id, labels)).map(lambda id, label:gen_fn(id, label, img_dir))
-    dataset = dataset.shuffle(1000).repeat().batch(batch_size)
+    dataset = dataset.shuffle(512).repeat().batch(batch_size)
     return dataset
     
 def main(argv):
