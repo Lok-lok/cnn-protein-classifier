@@ -7,19 +7,20 @@ def csv_read(path):
         file = open(path, 'r')
         csv_file = csv.reader(file)
         id_list = []
-        label_list = [[False for i in range(31072)] for i in range(28)]
+        label_list = []
         next(csv_file)
         index = -1
         for stu in csv_file:
             index += 1
             id_list.append(stu[0])
             label = stu[1].split(' ')
+            label_list.append([False for i in range(28)])
             for i in label:
-                label_list[int(i)][index] = True
+                label_list[index][int(0)] = True
         file.close()
         return id_list, label_list
-    except Exception:
-        print("Error! Please check path.")
+    except IOError:
+        print("Error! Please check path for csv.")
         sys.exit(0)
         
 id, label = csv_read("train.csv")
