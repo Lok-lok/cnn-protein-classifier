@@ -1,6 +1,4 @@
 import tensorflow as tf
-import csv
-import os
     
 def cnn_model_fn(features, labels, mode):
     if type(features) is dict:

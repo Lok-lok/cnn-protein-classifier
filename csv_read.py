@@ -23,7 +23,6 @@ def csv_read(path):
         print("Error! Please check path for csv.")
         sys.exit(0)
 
-
 def csv_writer(path, img, label):
     for i in range(len(label)):
         label[i] = " ".join(str(x) for x in label[i])
@@ -48,4 +47,3 @@ for i in range(28):
         maxlen = cur
         win = i
 print (win)
-
