@@ -49,14 +49,13 @@ def main(argv):
     
     img_id, label = csv_read.csv_read(config_data['csv_file'])
     
-    run_config = tf.estimator.RunConfig(save_checkpoints_steps=1000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
-    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)]
+    run_config = tf.estimator.RunConfig(save_checkpoints_steps=100, save_checkpoints_secs=None, keep_checkpoint_max = 1)
+    classifier = tf.estimator.Estimator(model_fn = model.cnn_model_fn, config = run_config, model_dir = config_data['ckpt_dir'])
     
-    for i in range(len(classifier)):
-        classifier[i].train(input_fn = lambda:train_input_fn(img_id, config_data['img_dir'], label[i], batch_size), steps = 1000)
-        
-        classifier[i].export_saved_model(export_dir_base=config_data['model_dir'],
-            serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
+    classifier.train(input_fn = lambda:train_input_fn(img_id, config_data['img_dir'], label, batch_size), steps = 100)
+    
+    # classifier.export_saved_model(export_dir_base=config_data['model_dir'],
+        # serving_input_receiver_fn=tf.estimator.export.build_raw_serving_input_receiver_fn({"features" : tf.placeholder(dtype=tf.float32)}))
         
 if __name__ == "__main__":
     config = tf.ConfigProto()
