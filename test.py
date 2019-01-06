@@ -47,7 +47,8 @@ def main(argv):
     
     img_id, label_list = csv_read.csv_read(config_data['csv_file'])
     
-    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)] 
+    run_config = tf.estimator.RunConfig(save_checkpoints_steps=1000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
+    classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)] 
 
     length = len(img_id)  # length of sample_submission size
 
