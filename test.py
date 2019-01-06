@@ -5,7 +5,7 @@ import os
 from time import gmtime, strftime
 import json
 import model
-import csv_read
+import csv_io
 
 img_color = ['blue', 'green', 'red', 'yellow']
 batch_size = 16
@@ -45,7 +45,7 @@ def main(argv):
         return 0
     config_data['img_dir'] += "/" if config_data['img_dir'][-1] else ""
     
-    img_id, label_list = csv_read.csv_read(config_data['csv_file'])
+    img_id, label_list = csv_io.csv_read(config_data['csv_file'])
     
     run_config = tf.estimator.RunConfig(save_checkpoints_steps=1000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
     classifier = [tf.estimator.Estimator(model_fn = model.model_fn, config = run_config, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)] 
@@ -70,7 +70,7 @@ def main(argv):
         print ("==============================================================================================================================================")
 
     path = config_data['csv_file']
-    csv_read.csv_writer(path, img_id, label)
+    csv_io.csv_writer(path, img_id, label)
     print("Prediction Finished!")
 
 
