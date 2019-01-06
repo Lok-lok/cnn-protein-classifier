@@ -49,15 +49,29 @@ def main(argv):
     
     classifier = [tf.estimator.Estimator(model_fn = model.model_fn, model_dir = config_data['ckpt_dir'] + "/model_" + str(i)) for i in range(28)] 
 
+    length = len(img_id)  # length of sample_submission size
+
+    label = [[] for i in range(length)] # predicted label
+
     for i in range(len(classifier)):
         #eval_result = classifier[i].evaluate(input_fn = lambda:eval_input_fn(img_id[100:], config_data['img_dir'], label_test[i], batch_size), steps = 1)
+        print ("==============================================================================================================================================")
+        index = -1
+        predictions = classifier[i].predict(input_fn=lambda:predict_input_fn(img_id, config_data['img_dir'], batch_size = batch_size))
+
+        for predict in predictions:
+            index = index +1
+            if (predict == 1): 
+                label[index].append(i)
+
+        print ("Finished: No." + str(i) + " Protain.")
         
         print ("==============================================================================================================================================")
-        predictions = classifier[i].predict(input_fn=lambda:predict_input_fn(img_id, config_data['img_dir'], batch_size = batch_size))
-        for predict in predictions:
-            index = predict[:, tf.newaxis]
-            print (index[0])
-        print ("==============================================================================================================================================")
+
+    path = config_data['csv_file']
+    csv_read.csv_writer(path, img_id, label)
+    print("Prediction Finished!")
+
 
 if __name__ == "__main__":
     config = tf.ConfigProto()
