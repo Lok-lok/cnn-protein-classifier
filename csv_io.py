@@ -15,7 +15,7 @@ def csv_read(path):
             label = stu[1].split(' ')
             label_list.append([False for i in range(28)])
             for i in label:
-                label_list[index][int(0)] = True
+                label_list[index][int(i)] = True
         file.close()
         return id_list, label_list
     except IOError:
