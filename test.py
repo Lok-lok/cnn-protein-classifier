@@ -1,9 +1,6 @@
 import tensorflow as tf
-from numpy import array
-import csv
-import os
-from time import gmtime, strftime
 import json
+
 import model
 import csv_io
 
