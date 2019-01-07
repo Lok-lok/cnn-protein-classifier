@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+sigmoid_threshold = 0.5
+
 def bottleneck_block(inputs, filters1, filters2, filters3, strides = (1, 1), kernel_size = (3, 3)):
     conv1 = tf.layers.conv2d(inputs = inputs,
         filters = filters1,
@@ -79,23 +81,27 @@ def resnet_50_model_fn(features, labels, mode):
     
     sigmoid = tf.nn.sigmoid(logits)
     
+    predictions = (sigmoid >= sigmoid_threshold)
+    
     if mode == tf.estimator.ModeKeys.PREDICT:
-        return tf.estimator.EstimatorSpec(mode = mode, predictions = sigmoid)
+        return tf.estimator.EstimatorSpec(mode = mode, predictions = predictions)
         
-    labels = tf.cast(labels, tf.int32)
     loss = tf.losses.sigmoid_cross_entropy(multi_class_labels = labels, logits = logits)
+    accuracy = tf.metrics.accuracy(labels = labels, predictions = predictions)
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
         train_op = optimizer.minimize(loss = loss, global_step = tf.train.get_global_step())
         
-        return tf.estimator.EstimatorSpec(mode = mode, loss = loss, train_op = train_op)
+        log = {"accuracy" : accuracy[1]}
+        logging_hook = tf.train.LoggingTensorHook(tensors = log, every_n_iter = 100)
+
+        return tf.estimator.EstimatorSpec(mode = mode, loss = loss, train_op = train_op, training_hooks = [logging_hook])
         
-    # if mode == tf.estimator.ModeKeys.EVAL:
-        # accuracy = tf.metrics.accuracy(labels = labels, predictions = argmax)
-        # eval_metric_ops = {"accuracy" : accuracy}
-        # tf.summary.scalar('accuracy', accuracy[1])
-        # return tf.estimator.EstimatorSpec(mode = mode, loss = loss, eval_metric_ops = eval_metric_ops)
+    if mode == tf.estimator.ModeKeys.EVAL:
+        eval_metric_ops = {"accuracy" : accuracy}
+        tf.summary.scalar('accuracy', accuracy[1])
+        return tf.estimator.EstimatorSpec(mode = mode, loss = loss, eval_metric_ops = eval_metric_ops)
 
 def cnn_model_fn(features, labels, mode):
     if type(features) is dict:
