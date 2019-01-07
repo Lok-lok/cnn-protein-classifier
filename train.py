@@ -5,14 +5,15 @@ import model
 import csv_io
 
 img_color = ['blue', 'green', 'red', 'yellow']
-batch_size = 16
+batch_size = 32
 
 def gen_fn(id, label, img_dir):
     color_img = [tf.image.decode_png(tf.read_file(img_dir + id + "_" + color + ".png"), dtype = tf.uint8, channels = 1) for color in img_color]
     for current_color_img in color_img:
         current_color_img.set_shape([512, 512, 1])
     color_img_reshaped = [tf.reshape(i, [512, 512]) for i in color_img]
-    img = tf.stack(color_img_reshaped, axis=2)
+    # img = tf.stack(color_img_reshaped, axis=2)
+    img = tf.image.resize_images(tf.stack(color_img_reshaped, axis=2), [224, 224])
     normalized_img = tf.divide(tf.cast(img, dtype = tf.float32), tf.convert_to_tensor(255.0))
     return (normalized_img, label)
     
@@ -45,7 +46,7 @@ def main(argv):
     img_id, label = csv_io.csv_read(config_data['csv_file'])
     
     run_config = tf.estimator.RunConfig(save_checkpoints_steps=2000, save_checkpoints_secs=None, keep_checkpoint_max = 1)
-    classifier = tf.estimator.Estimator(model_fn = model.cnn_model_fn, config = run_config, model_dir = config_data['ckpt_dir'])
+    classifier = tf.estimator.Estimator(model_fn = model.resnet_50_model_fn, config = run_config, model_dir = config_data['ckpt_dir'])
     
     classifier.train(input_fn = lambda:train_input_fn(img_id, config_data['img_dir'], label, batch_size), steps = 2000)
     
