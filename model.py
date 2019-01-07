@@ -21,6 +21,7 @@ def bottleneck_block(inputs, filters1, filters2, filters3, strides = (1, 1), ker
     conv3_bn = tf.layers.batch_normalization(conv3)
     
     shortcut = inputs
+    shortcut_bn = tf.layers.batch_normalization(shortcut)
     if tf.shape(inputs) != tf.shape(conv3_bn):
         shortcut = tf.layers.conv2d(inputs = inputs,
             filters = filters3,
@@ -41,8 +42,9 @@ def resnet_50_model_fn(features, labels, mode):
         strides = (2, 2),
         padding = "same")
     conv1_bn = tf.layers.batch_normalization(conv1)
+    conv1_fin = tf.nn.relu(conv1_bn)
         
-    max_pool = tf.layers.max_pooling2d(inputs = conv1_bn,
+    max_pool = tf.layers.max_pooling2d(inputs = conv1_fin,
         pool_size = (3, 3),
         strides = (2, 2),
         padding = "same")
@@ -68,7 +70,7 @@ def resnet_50_model_fn(features, labels, mode):
         strides = (7, 7))
         
     flat = tf.layers.flatten(avg_pool)
-
+    
     fc = tf.layers.dense(inputs = flat,
         units = 1000,
         activation = tf.nn.relu)
